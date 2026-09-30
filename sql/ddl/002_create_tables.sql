@@ -86,15 +86,35 @@ CREATE TABLE IF NOT EXISTS vehicle_current_state(
 	vehicle_id VARCHAR,
 	trip_id VARCHAR,
 	route_id VARCHAR,
+	direction_id INTEGER,
+	stop_id VARCHAR,
 	lat NUMERIC(9,6),
 	lon NUMERIC(9,6),
-	speed NUMERIC(5,2),
 	bearing NUMERIC(5,2),
+	occupancy_status INTEGER,
 	last_updated_at TIMESTAMP,
 	PRIMARY KEY (vehicle_id, trip_id)
 	);
 
+CREATE TABLE IF NOT EXISTS trip_update_current_state (
+    trip_id            VARCHAR,
+    stop_id            VARCHAR,
+    route_id           VARCHAR,
+    vehicle_id		   VARCHAR,
+    stop_sequence      INTEGER,
+    arrival_time       TIMESTAMP,
+    departure_time     TIMESTAMP,
+    delay			   INTEGER,
+    last_updated_at    TIMESTAMP,
+    PRIMARY KEY (trip_id, stop_id)
+);
+
 -- Table-level grants -- must come after tables exist, or transit_app
 -- still can't read/write any rows despite the schema-level grant above
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO transit_app;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO transit_app;
+-- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO transit_app;
+-- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO transit_app;
+-- GRANT SELECT ON vehicle_current_state TO debezium_replicator;
+-- GRANT SELECT ON trip_update_current_state TO debezium_replicator;
+
+-- ALTER PUBLICATION dbz_publication ADD TABLE vehicle_current_state;
+-- ALTER PUBLICATION dbz_publication ADD TABLE trip_update_current_state;

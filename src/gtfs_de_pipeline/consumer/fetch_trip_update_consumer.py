@@ -6,6 +6,7 @@ from confluent_kafka import Consumer
 from pyiceberg.catalog.sql import SqlCatalog
 import pyarrow as pa
 
+
 # environment path
 load_dotenv()
 warehouse_path = os.getenv("ICEBERG_WAREHOUSE")
@@ -17,7 +18,7 @@ consumer = Consumer({
 	'auto.offset.reset': 'earliest',
 	})
 
-consumer.subscribe(['nyc_transit.public.vehicle_current_state'])
+consumer.subscribe(['nyc_transit.public.trip_update_current_state'])
 
 
 # Iceberg Catalog
@@ -29,7 +30,7 @@ catalog = SqlCatalog(
  	})
 
 
-table = catalog.load_table("bronze.vehicle_positions")
+table = catalog.load_table("bronze.trip_updates")
 
 
 buffer = []
@@ -41,12 +42,7 @@ last_flush_time  = time.time()
 def flush(buffer):
 	if not buffer:
 		return
-
-	arrow_table = pa.Table.from_pylist(
-		buffer,
-        schema=arrow_schema
-        )
-
+	arrow_table = pa.Table.from_pylist(buffer,schema = table.schema().as_arrow())
 	table.append(arrow_table)
 	print(f"Flushed {len(buffer)} rows to bronze!")
 

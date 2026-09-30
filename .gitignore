@@ -5,3 +5,9 @@ venv
 *.pb
 __pycache__/
 *.pyc
+iceberg_catalog/
+data
+logs
+uv.lock
+trial.py
+.python-version

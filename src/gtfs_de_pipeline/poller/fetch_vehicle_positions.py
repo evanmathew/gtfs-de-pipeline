@@ -20,16 +20,18 @@ def fetch_vehicle_positions(api_key):
 		vp = entity.vehicle
 
 		#btw this attribute is in timezone datatype in postgres and poller datatype is in integer so im converting before appending, thanks !
-		last_updated_at = datetime.fromtimestamp(feed.header.timestamp, tz=timezone.utc) 
+		last_updated_at = datetime.fromtimestamp(feed.header.timestamp, tz=timezone.utc)
 
 		row.append((
 			vp.vehicle.id,
             vp.trip.trip_id,
             vp.trip.route_id,
+            vp.stop_id,
+            vp.trip.direction_id,
             vp.position.latitude,
             vp.position.longitude,
-            vp.position.speed,     # check: field may not always be populated
             vp.position.bearing,   # same caveat
+            vp.occupancy_status,
             last_updated_at
 			))
 	return row
@@ -37,15 +39,17 @@ def fetch_vehicle_positions(api_key):
 def value_upsert(conn,values):
 	sql = """
 			INSERT INTO vehicle_current_state
-				(vehicle_id ,trip_id ,route_id ,lat ,lon ,speed ,bearing ,last_updated_at)
+				(vehicle_id ,trip_id ,route_id ,stop_id, direction_id, lat, lon, bearing, occupancy_status, last_updated_at)
 			VALUES %s
 			ON CONFLICT (vehicle_id, trip_id) 
 			DO UPDATE SET
 				route_id = EXCLUDED.route_id,
+				stop_id = EXCLUDED.stop_id,
+				direction_id = EXCLUDED.direction_id,
 				lat = EXCLUDED.lat,
 				lon = EXCLUDED.lon,
-				speed = EXCLUDED.speed,
 				bearing = EXCLUDED.bearing,
+				occupancy_status = EXCLUDED.occupancy_status,
 				last_updated_at = EXCLUDED.last_updated_at
 		"""
 
